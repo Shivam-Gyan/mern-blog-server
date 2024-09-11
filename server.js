@@ -28,14 +28,7 @@ server.use(fileUpload({
 
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
-// server.use(cors());
-server.use(cors(
-    {
-        origin: [process.env.FRONTEND_URL,process.env.FRONTEND_URL2],
-        methods: ["PUT", "POST", "GET", "DELETE", "PATCH"],
-        credentials: true
-    }
-));
+server.use(cors());
 
 
 // Authentication handling 
