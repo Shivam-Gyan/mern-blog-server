@@ -36,6 +36,8 @@ server.use(cors(
     }
 ));
 
+server.options('*', cors()); 
+
 
 
 // Authentication handling 
