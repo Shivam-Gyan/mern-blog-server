@@ -28,7 +28,14 @@ server.use(fileUpload({
 
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
-server.use(cors());
+// server.use(cors());
+server.use(cors(
+    {
+        origin: process.env.FRONTEND_URL, 
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    }
+));
+
 
 
 // Authentication handling 

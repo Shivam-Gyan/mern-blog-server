@@ -13,14 +13,17 @@ export const UplaodCloudinary = async (req, res, next) => {
         return next(new ErrorHandler("Please uplaod and image", 404));
     }
     const { image } = req.files;
+    let cloudinaryResponse;
 
-    const cloudinaryResponse = await cloudinary.uploader.upload(
-        image.tempFilePath
-    );
-    if (!cloudinaryResponse || cloudinaryResponse.error) {
-        console.error("Cloudinary Error :: ", cloudinaryResponse.error || "Unknown cludinary error")
+    try {
+        cloudinaryResponse = await cloudinary.uploader.upload(
+            image.tempFilePath
+        );
+    } catch (error) {
+        return next(new ErrorHandler("something went wrong while uploading banner ", 500))
     }
-    res.status(200).json({
+
+    return res.status(200).json({
         success: true,
         message: "upload successfull",
         image_url: cloudinaryResponse.url
