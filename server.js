@@ -36,7 +36,7 @@ server.use(cors(
     }
 ));
 
-server.options('*', cors()); 
+// server.options('*', cors()); 
 
 
 
