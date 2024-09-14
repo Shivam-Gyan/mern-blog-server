@@ -2,6 +2,7 @@ import ErrorHandler from "../middleware/error.middleware.js";
 import bcrypt from 'bcrypt'
 import User from "../Schema/User.js";
 import Notification from '../Schema/Notification.js';
+import Blog from '../Schema/Blog.js'
 import { nanoid } from 'nanoid'
 import jwt from 'jsonwebtoken'
 
@@ -118,4 +119,65 @@ export const countFilterNotification=async(req,res,next)=>{
     })
 
 
+}
+
+
+export const userWrittenBlogs=async(req,res,next)=>{
+
+    let user_id=req.user
+
+    let {page,draft,query,deletedDocCount}=req.body
+
+    let maxLimit=5;
+    let skip=(page-1)*maxLimit;
+
+    if(deletedDocCount){
+        skip-=deletedDocCount
+    }
+
+    await Blog.find({
+        author:user_id,
+        draft,
+        title:new RegExp(query,'i')
+        // here 'i' means incase sensitive
+    })
+    .skip(skip)
+    .limit(maxLimit)
+    .sort({
+        PublishedAt:-1
+    })
+    .select("title banner publishedAt blog_id activity des draft -_id")
+    .then((docs)=>{
+        return res.status(200).json({
+            success:true,
+            message:"Number of Document is "+(docs.length),
+            docs
+        })
+    })
+    .catch(err=>{
+        return next(new ErrorHandler(err.message,500))
+    })
+
+}
+
+
+export const countUserWrittenBlog=async(req,res,next)=>{
+
+    let user_id=req.user
+
+    let {draft,query}=req.body
+
+    await Blog.countDocuments({
+        author:user_id,
+        draft,
+        title:new RegExp(query,'i')
+    })
+    .then((countDoc)=>{
+        return res.status(200).json({
+            totalDocs:countDoc
+        })
+    })
+    .catch(err=>{
+        return next(new ErrorHandler(err.message,500));
+    })
 }

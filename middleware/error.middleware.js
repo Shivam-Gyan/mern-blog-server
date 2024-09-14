@@ -31,18 +31,6 @@ class ErrorHandler extends Error {
       err = new ErrorHandler(message, 400);
     }
   
-    // token is expired thne through error
-    if (err.name === "TokenExpiredError") {
-      const message = `Json Web Token is expired, Try again!`;
-      // creating the instance object of Errorhandler Class 
-      err = new ErrorHandler(message, 400);
-    }
-    if (err.name === "CastError") {
-      const message = `Invalid ${err.path}`,
-      // creating the instance object of Errorhandler Class 
-        err = new ErrorHandler(message, 400);
-    }
-  
     
     const errorMessage = err.errors
       ? Object.values(err.errors)
