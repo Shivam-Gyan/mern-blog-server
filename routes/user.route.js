@@ -3,6 +3,7 @@ import express from "express";
 import {
     CheckAnyNotification, countFilterNotification,
     countUserWrittenBlog,
+    deleteUserBlog,
     getNotificationByFilter, getUserBySearch,
     userWrittenBlogs
 } from "../controller/user.controller.js";
@@ -18,6 +19,7 @@ UserRouter
     .post('/count-notifications', verifyJWT, countFilterNotification)
     .post('/user-blogs', verifyJWT, userWrittenBlogs)
     .post('/count-user-blogs', verifyJWT, countUserWrittenBlog)
+    .post('/delete-user-blog',verifyJWT,deleteUserBlog)
 
 
 export default UserRouter;

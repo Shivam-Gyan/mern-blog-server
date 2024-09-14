@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import User from "../Schema/User.js";
 import Notification from '../Schema/Notification.js';
 import Blog from '../Schema/Blog.js'
+import Comment from '../Schema/Comment.js'
 import { nanoid } from 'nanoid'
 import jwt from 'jsonwebtoken'
 
@@ -180,4 +181,45 @@ export const countUserWrittenBlog=async(req,res,next)=>{
     .catch(err=>{
         return next(new ErrorHandler(err.message,500));
     })
+}
+
+export const deleteUserBlog=async(req,res,next)=>{
+    
+    let user_id=req.user
+    
+    let {blog_id}=req.body
+    
+    
+    await Blog.findOneAndDelete({blog_id})
+    .then(async(blog)=>{
+        
+        await Notification.deleteMany({blog:blog._id})
+        .catch(err=>{
+            return next(new ErrorHandler(err.message,500));
+        })
+        
+        await Comment.deleteMany({blog_id:blog._id})
+        .catch(err=>{
+            return next(new ErrorHandler(err.message,500));
+        })
+        
+        
+        await User.findOneAndUpdate({_id:user_id},{
+            $pull:{blog:blog._id},$inc:{"account_info.total_post":-1}
+        })
+        .catch(err=>{
+            return next(new ErrorHandler(err.message,500));
+        })
+        
+        return res.status(200).json({
+            success:true,
+            message:"blog deleted "
+        })
+        
+        
+    })
+    .catch(err=>{
+        return next(new ErrorHandler(err.message,500));
+    })
+
 }
