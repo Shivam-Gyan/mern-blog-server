@@ -23,10 +23,12 @@ export const UplaodCloudinary = async (req, res, next) => {
         return next(new ErrorHandler("something went wrong while uploading banner ", 500))
     }
 
+
     return res.status(200).json({
         success: true,
         message: "upload successfull",
-        image_url: cloudinaryResponse.url
+
+        image_url: cloudinaryResponse.secure_url
     })
 }
 
