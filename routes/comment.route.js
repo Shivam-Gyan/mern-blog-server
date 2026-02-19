@@ -1,5 +1,5 @@
 import express from "express";
-import { verifyJWT } from "../utils/jwt.verification.js";
+import { verifyJWT } from "../middleware/jwt.verification.js";
 
 import {
     createComment, 

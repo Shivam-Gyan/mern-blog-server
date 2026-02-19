@@ -9,7 +9,23 @@ import cloudinary from 'cloudinary'
 import fileUpload from 'express-fileupload'
 import { config } from 'dotenv';
 import CommentRouter from './routes/comment.route.js';
+import User from './Schema/User.js';
 config({ path: ".env" })
+
+// Auto-cleanup expired integration tokens every hour
+const cleanupExpiredTokens = async () => {
+    try {
+        const result = await User.updateMany(
+            { "integrationdetails.expiry_date": { $lte: new Date() } },
+            { $pull: { integrationdetails: { expiry_date: { $lte: new Date() } } } }
+        );
+        if (result.modifiedCount > 0) {
+            console.log(`Cleaned up expired tokens from ${result.modifiedCount} user(s)`);
+        }
+    } catch (err) {
+        console.error("Token cleanup error:", err.message);
+    }
+};
 
 const server = express();
 
@@ -50,8 +66,12 @@ server.use(errorMiddleware)
 
 
 
-server.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, async () => {
     // database function calling 
     db();
     console.log("server Started on port " + (process.env.PORT));
+
+    // Run cleanup once on startup, then every hour
+    await cleanupExpiredTokens();
+    setInterval(cleanupExpiredTokens, 60 * 60 * 1000); // every 1 hour
 })

@@ -2,11 +2,11 @@ import {
     allLatestBlogsCount, checkIsLikedByUser, countSearchBlog, CreateBlog,
     getBlogById, getBlogBySearch, getLatestBlog,
     getTrendingBlog, likedBlogByUser, UplaodCloudinary,
-    
+    AutomaticBlogCreation,
 } from "../controller/blog.controller.js";
 
 import express from "express";
-import { verifyJWT } from "../utils/jwt.verification.js";
+import { verifyJWT, verifyIntegrationToken} from "../middleware/jwt.verification.js";
 
 
 const BlogRouter = express.Router();
@@ -23,6 +23,7 @@ BlogRouter
     .post('/get-blog', getBlogById)
     .post('/like-blog',verifyJWT,likedBlogByUser)
     .post('/isliked-by-user',verifyJWT,checkIsLikedByUser)
+    .post('/auto-blog',verifyIntegrationToken, AutomaticBlogCreation)
     
 
 

@@ -1,6 +1,6 @@
 import express from "express";
 import { ChangePassword, getProfile, UpdateImage, updateProfile, userSignIn, userSignUp } from "../controller/auth.controller.js";
-import {verifyJWT} from '../utils/jwt.verification.js'
+import {verifyJWT} from '../middleware/jwt.verification.js'
 
 const userAuthRouter=express.Router();
 

@@ -3,6 +3,32 @@ import mongoose, { Schema } from "mongoose";
 let profile_imgs_name_list = ["Garfield", "Tinkerbell", "Annie", "Loki", "Cleo", "Angel", "Bob", "Mia", "Coco", "Gracie", "Bear", "Bella", "Abby", "Harley", "Cali", "Leo", "Luna", "Jack", "Felix", "Kiki"];
 let profile_imgs_collections_list = ["notionists-neutral", "adventurer-neutral", "fun-emoji"];
 
+
+const IntegrationTokenSchema = new Schema({
+    token: {
+        type: String,
+        required: true,
+    },
+    token_name: {
+        type: String,
+        required: true,
+    },
+    access_token:{
+        type: String,
+        required: true,
+    },
+    expiry_days: {
+        type: Number,
+        required: true,
+        default: 7,
+        enum: [7, 14, 30],
+    },
+    expiry_date: {
+        type: Date,
+    }
+})
+
+
 const userSchema = mongoose.Schema({
 
     personal_info: {
@@ -33,7 +59,7 @@ const userSchema = mongoose.Schema({
             type: String,
             default: () => {
                 return `https://api.dicebear.com/6.x/${profile_imgs_collections_list[Math.floor(Math.random() * profile_imgs_collections_list.length)]}/svg?seed=${profile_imgs_name_list[Math.floor(Math.random() * profile_imgs_name_list.length)]}`
-            } 
+            }
         },
     },
     social_links: {
@@ -62,7 +88,7 @@ const userSchema = mongoose.Schema({
             default: "",
         }
     },
-    account_info:{
+    account_info: {
         total_posts: {
             type: Number,
             default: 0
@@ -72,22 +98,41 @@ const userSchema = mongoose.Schema({
             default: 0
         },
     },
+    integrationdetails: [IntegrationTokenSchema],
+    integration_token_limit: {
+        type: Number,
+        default: 5
+    },
     google_auth: {
         type: Boolean,
         default: false
     },
     blogs: {
-        type: [ Schema.Types.ObjectId ],
+        type: [Schema.Types.ObjectId],
         ref: 'blogs',
         default: [],
     }
 
-}, 
-{ 
-    timestamps: {
-        createdAt: 'joinedAt'
-    } 
+},
+    {
+        timestamps: {
+            createdAt: 'joinedAt'
+        }
 
-})
+    })
+
+// Auto-set expiry_date from expiry_days for new integration tokens
+userSchema.pre("save", function (next) {
+    if (this.isModified("integrationdetails")) {
+        this.integrationdetails.forEach((token) => {
+            if (!token.expiry_date) {
+                const date = new Date();
+                date.setDate(date.getDate() + (token.expiry_days || 7));
+                token.expiry_date = date;
+            }
+        });
+    }
+    next();
+});
 
 export default mongoose.model("users", userSchema);

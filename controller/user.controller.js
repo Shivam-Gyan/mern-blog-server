@@ -223,3 +223,135 @@ export const deleteUserBlog=async(req,res,next)=>{
     })
 
 }
+
+
+
+// generate a bcrypt integration token for third party integration like agentic_ai blog application 
+
+export const generateIntegrationToken = async (req, res, next) => {
+
+    const user_id = req.user;
+    const { token_name, expiry_days = 7 } = req.body;
+
+    if (!token_name || !token_name.trim().length) {
+        return next(new ErrorHandler("Please provide a token name", 400));
+    }
+
+    if (![7, 14, 30].includes(expiry_days)) {
+        return next(new ErrorHandler("expiry_days must be 7, 14, or 30", 400));
+    }
+
+    try {
+        // Generate a raw token: nanoid + timestamp for uniqueness
+        const rawToken = `featherfables_${nanoid(32)}_${Date.now()}_${expiry_days}d`;
+
+        // Hash it with bcrypt (store hash in DB, return raw to user)
+        const hashedToken = await bcrypt.hash(rawToken, 10);
+
+        const user = await User.findById(user_id);
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404));
+        }
+
+        if(user.integration_token_limit <= 0){
+            return next(new ErrorHandler("Integration token limit reached. Please use another account to get Access of integration Token or purchase membership to use", 403));
+        }
+
+        // Calculate expiry date for JWT
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + expiry_days);
+
+        // Generate JWT access token with user_id, token_name, token, and expiry details
+        const accessToken = jwt.sign(
+            {
+                random_id: user_id,
+                token_name: token_name.trim(),
+                token: hashedToken,
+                expiry_days,
+                expiry_date: expiryDate.toISOString(),
+            },
+            process.env.SECRET_KEY,
+            { expiresIn: `${expiry_days}d` }
+        );
+
+        // Push new token — expiry_date is auto-set by pre-save hook
+        user.integrationdetails.push({
+            token: hashedToken,
+            token_name: token_name.trim(),
+            access_token: accessToken,
+            expiry_days,
+        });
+
+        user.integration_token_limit -= 1; // Update token count
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Integration token generated successfully",
+            access_token: accessToken,
+        });
+
+    } catch (err) {
+        return next(new ErrorHandler(err.message, 500));
+    }
+};
+
+export const getIntegrationTokens = async (req, res, next) => {
+    const user_id = req.user;
+
+    try {
+        const user = await User.findById(user_id).select("integrationdetails integration_token_limit");
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404));
+        }
+
+        const tokens = user.integrationdetails.map((t) => ({
+            _id: t._id,
+            token_name: t.token_name,
+            access_token: t.access_token,
+            expiry_days: t.expiry_days,
+            expiry_date: t.expiry_date,
+        }));
+
+        return res.status(200).json({
+            success: true,
+            tokens,
+            integration_token_limit: user.integration_token_limit,
+        });
+    } catch (err) {
+        return next(new ErrorHandler(err.message, 500));
+    }
+};
+
+export const deleteIntegrationToken = async (req, res, next) => {
+    const user_id = req.user;
+    const { token_id } = req.body;
+
+    if (!token_id) {
+        return next(new ErrorHandler("Please provide a token_id", 400));
+    }
+
+    try {
+        const user = await User.findById(user_id);
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404));
+        }
+
+        const tokenExists = user.integrationdetails.id(token_id);
+        if (!tokenExists) {
+            return next(new ErrorHandler("Token not found", 404));
+        }
+
+        user.integrationdetails.pull(token_id);
+        user.integration_token_limit += 1;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Integration token deleted successfully",
+        });
+    } catch (err) {
+        return next(new ErrorHandler(err.message, 500));
+    }
+};
