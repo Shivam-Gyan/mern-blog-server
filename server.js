@@ -47,7 +47,7 @@ server.use(express.urlencoded({ extended: true }));
 // server.use(cors());
 server.use(cors(
     {
-        origin: process.env.FRONTEND_URL, 
+        origin:[process.env.FRONTEND_URL, process.env.BLOG_AGENTIC_AI,process.env.FRONTEND_URL2], 
         allowedHeaders: ['Content-Type', 'Authorization'],
     }
 ));
