@@ -3,6 +3,8 @@ import db from './config/mongoDB.config.js';
 import userAuthRouter from './routes/auth.route.js';
 import UserRouter from './routes/user.route.js';
 import BlogRouter from './routes/blog.route.js';
+import MCPBlogRouter from './mcp_routes/blog.mcp.route.js';
+import MCPUserRouter from './mcp_routes/user.mcp.route.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import cors from 'cors'
 import cloudinary from 'cloudinary'
@@ -47,7 +49,8 @@ server.use(express.urlencoded({ extended: true }));
 // server.use(cors());
 server.use(cors(
     {
-        origin:[process.env.FRONTEND_URL, process.env.BLOG_AGENTIC_AI,process.env.FRONTEND_URL2], 
+        // origin:[process.env.FRONTEND_URL, process.env.BLOG_AGENTIC_AI,process.env.FRONTEND_URL2], 
+        origin:'*', 
         allowedHeaders: ['Content-Type', 'Authorization'],
     }
 ));
@@ -61,6 +64,8 @@ server.use('/api/v1/auth',userAuthRouter)
 server.use('/api/v1/blog',BlogRouter)
 server.use('/api/v1/user',UserRouter)
 server.use('/api/v1/comment',CommentRouter)
+server.use('/api/v1/mcp/blog',MCPBlogRouter)
+server.use('/api/v1/mcp/user',MCPUserRouter)
 
 server.use(errorMiddleware)
 

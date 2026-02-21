@@ -278,7 +278,7 @@ export const updateProfile=async(req,res,next)=>{
         return res.status(200).json({
             success:true,
             message:"profile updated",
-            username
+            updated_profile:UpdateObj
         })
     }).catch(err=>{
         if(err.code==11000){

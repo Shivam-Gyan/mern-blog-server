@@ -2,7 +2,6 @@ import {
     allLatestBlogsCount, checkIsLikedByUser, countSearchBlog, CreateBlog,
     getBlogById, getBlogBySearch, getLatestBlog,
     getTrendingBlog, likedBlogByUser, UplaodCloudinary,
-    AutomaticBlogCreation,
 } from "../controller/blog.controller.js";
 
 import express from "express";
@@ -23,7 +22,6 @@ BlogRouter
     .post('/get-blog', getBlogById)
     .post('/like-blog',verifyJWT,likedBlogByUser)
     .post('/isliked-by-user',verifyJWT,checkIsLikedByUser)
-    .post('/auto-blog',verifyIntegrationToken, AutomaticBlogCreation)
     
 
 
